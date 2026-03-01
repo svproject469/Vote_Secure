@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{% block title %}VoteSecure India{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0f0f0f; --surface:#1a1a1a; --card:#161616; --border:#252525; --border2:#333;
+  --text:#e8e8e8; --muted:#555; --muted2:#888; --accent:#3b82f6; --accent-h:#2563eb;
+  --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --radius:10px;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;}
+nav{background:rgba(15,15,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;}
+.nav-brand{font-weight:700;font-size:0.95rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.nav-brand span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:4px;}
+.nav-links a{color:var(--muted2);text-decoration:none;padding:6px 12px;border-radius:6px;font-size:0.85rem;font-weight:500;transition:color .15s,background .15s;}
+.nav-links a:hover{color:var(--text);background:var(--surface);}
+.nav-sep{width:1px;height:18px;background:var(--border2);margin:0 4px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;font-family:'Inter',sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;} .btn-primary:hover{background:var(--accent-h);}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border2);} .btn-secondary:hover{background:var(--border2);}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.3);} .btn-danger:hover{background:rgba(239,68,68,0.08);}
+.btn-sm{padding:6px 14px;font-size:0.8rem;} .btn-full{width:100%;justify-content:center;} .btn-lg{padding:12px 24px;font-size:0.95rem;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+.form-group{margin-bottom:16px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+label{display:block;font-size:0.78rem;font-weight:600;color:var(--muted2);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;}
+input,select,textarea{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:10px 14px;font-family:'Inter',sans-serif;font-size:0.9rem;outline:none;transition:border-color .15s,box-shadow .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+input::placeholder{color:var(--muted);}
+.input-hint{font-size:0.78rem;color:var(--muted);margin-top:5px;}
+.alert{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;font-size:0.875rem;font-weight:500;margin-bottom:10px;}
+.alert-success{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#86efac;}
+.alert-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#fca5a5;}
+.alert-otp{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:#fcd34d;}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;letter-spacing:.04em;}
+.badge-green{background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.2);}
+.badge-blue{background:rgba(59,130,246,.1);color:#93c5fd;border:1px solid rgba(59,130,246,.2);}
+.badge-amber{background:rgba(245,158,11,.1);color:#fcd34d;border:1px solid rgba(245,158,11,.2);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite;display:inline-block;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.stat-value{font-size:1.75rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.stat-label{font-size:0.75rem;color:var(--muted2);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.875rem;}
+th{padding:10px 14px;text-align:left;font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(255,255,255,.02);}
+.progress{background:var(--border);border-radius:99px;height:5px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:99px;background:var(--accent);transition:width .8s cubic-bezier(.4,0,.2,1);}
+.container{max-width:1060px;margin:0 auto;padding:32px 24px;}
+.container-sm{max-width:500px;margin:0 auto;padding:40px 24px;}
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.mono{font-family:'JetBrains Mono',monospace;}
+.text-muted{color:var(--muted2);}
+.flex-between{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.mb-1{margin-bottom:6px;} .mb-2{margin-bottom:12px;} .mb-3{margin-bottom:20px;} .mb-4{margin-bottom:32px;}
+.page-title{font-size:1.35rem;font-weight:700;margin-bottom:4px;}
+.page-sub{color:var(--muted2);font-size:0.875rem;}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:24px;overflow-x:auto;}
+.tab-btn{padding:10px 16px;border:none;background:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:0.875rem;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;}
+.tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-pane{display:none;} .tab-pane.active{display:block;}
+footer{border-top:1px solid var(--border);padding:20px 24px;text-align:center;color:var(--muted);font-size:0.78rem;margin-top:60px;}
+@media(max-width:640px){.stat-grid{grid-template-columns:1fr 1fr;}.form-row{grid-template-columns:1fr;}nav{padding:0 1rem;}.container{padding:20px 16px;}}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-brand">🗳 Vote<span>Secure</span></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/results">Live Results</a>
+    {% if session.get('voter') %}
+      <a href="/dashboard">Dashboard</a>
+      <div class="nav-sep"></div>
+      <a href="/logout" class="btn btn-secondary btn-sm">Sign out</a>
+    {% elif session.get('admin') %}
+      <a href="/admin/dashboard">Admin</a>
+      <div class="nav-sep"></div>
+      <a href="/admin/logout" class="btn btn-secondary btn-sm">Sign out</a>
+    {% else %}
+      <a href="/register">Register</a>
+      <div class="nav-sep"></div>
+      <a href="/login" class="btn btn-primary btn-sm">Login</a>
+      <a href="/admin/login" style="font-size:.78rem;color:var(--muted);padding:6px 8px;">Admin</a>
+    {% endif %}
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="max-width:860px;margin:16px auto;padding:0 24px;">
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ 'success' if cat=='success' else 'otp' if cat=='otp' else 'error' }}">
+          <span style="flex-shrink:0;">{{ '✓' if cat=='success' else '🔐' if cat=='otp' else '⚠' }}</span>
+          <span>{{ msg }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<footer>VoteSecure India &mdash; Online Voting System &copy; 2025 &mdash; B.Sc Data Science Project, N.G. Acharya & D.K. Marathe College</footer>
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  el.classList.add('active');
+}
+{% block scripts %}{% endblock %}
+</script>
+</body>
+</html>

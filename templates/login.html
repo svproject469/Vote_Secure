@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Login — VoteSecure{% endblock %}
+{% block content %}
+<div class="container-sm" style="max-width:400px;">
+  <div class="mb-3">
+    <p class="page-title">Voter Login</p>
+    <p class="page-sub">Enter your Voter ID and password to continue.</p>
+  </div>
+  <div class="card">
+    <form method="POST">
+      <div class="form-group">
+        <label>Voter ID</label>
+        <input type="text" name="voter_id" placeholder="e.g. VTR1234567" required
+               style="font-family:'JetBrains Mono',monospace;letter-spacing:2px;">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" style="margin-top:4px;">Login →</button>
+    </form>
+    <p style="text-align:center;margin-top:16px;font-size:0.83rem;color:var(--muted2);">
+      Not registered? <a href="/register" style="color:var(--accent);text-decoration:none;">Register with Aadhaar</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

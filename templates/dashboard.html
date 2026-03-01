@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — VoteSecure{% endblock %}
+{% block extra_css %}
+<style>
+.cand-option{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all .15s;position:relative;}
+.cand-option:hover{border-color:var(--border2);}
+.cand-option input[type=radio]{position:absolute;opacity:0;pointer-events:none;}
+.cand-option.selected{border-color:var(--accent);background:rgba(59,130,246,.04);}
+.cand-option .check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);position:absolute;top:16px;right:16px;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.cand-option.selected .check{background:var(--accent);border-color:var(--accent);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="flex-between mb-4">
+    <div>
+      <p style="font-size:0.78rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Voter Dashboard</p>
+      <p class="page-title">{{ voter['name'] }}</p>
+    </div>
+    <div style="text-align:right;">
+      <p style="font-size:0.75rem;color:var(--muted2);margin-bottom:3px;">VOTER ID</p>
+      <p class="mono" style="color:var(--accent);font-size:0.95rem;letter-spacing:2px;">{{ voter['voter_id'] }}</p>
+    </div>
+  </div>
+
+  <!-- Info strip -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;">
+    {% for label,val,color in [
+      ('Status', 'Voted' if voter['has_voted'] else 'Pending', 'var(--green)' if voter['has_voted'] else 'var(--amber)'),
+      ('Aadhaar', 'Verified', 'var(--green)'),
+      ('DOB', voter['dob'], 'var(--text)'),
+      ('Gender', voter['gender'], 'var(--text)')
+    ] %}
+    <div class="stat-card">
+      <p style="font-size:0.72rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">{{ label }}</p>
+      <p style="font-weight:600;font-size:0.9rem;color:{{ color }};">{{ val }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if voter['has_voted'] %}
+  <div class="card" style="text-align:center;padding:48px 24px;border-color:rgba(34,197,94,.15);">
+    <p style="font-size:2rem;margin-bottom:12px;">🗳</p>
+    <p style="font-weight:700;font-size:1.1rem;margin-bottom:8px;color:var(--green);">Vote Recorded Successfully</p>
+    <p style="color:var(--muted2);font-size:0.875rem;margin-bottom:24px;">Thank you for participating. Your vote has been securely stored.</p>
+    <a href="/results" class="btn btn-secondary">View Live Results →</a>
+  </div>
+
+  {% elif election %}
+  <div style="margin-bottom:6px;">
+    <div class="flex-between mb-3">
+      <div>
+        <p style="font-weight:600;font-size:1rem;">{{ election['title'] }}</p>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-top:2px;">Select one candidate below, then confirm your vote.</p>
+      </div>
+      <span class="badge badge-green"><span class="live-dot"></span> Live</span>
+    </div>
+    <form method="POST" action="/vote" id="vote-form">
+      <input type="hidden" name="election_id" value="{{ election['election_id'] }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:20px;">
+        {% for c in candidates %}
+        <label class="cand-option" id="card-{{ c['candidate_id'] }}" onclick="pick('{{ c['candidate_id'] }}')">
+          <input type="radio" name="candidate_id" value="{{ c['candidate_id'] }}" required>
+          <div class="check" id="chk-{{ c['candidate_id'] }}"></div>
+          <p style="font-size:1.6rem;margin-bottom:10px;">{{ c['symbol'] }}</p>
+          <p style="font-weight:600;font-size:0.95rem;">{{ c['name'] }}</p>
+          <p style="color:var(--muted2);font-size:0.8rem;margin-top:2px;">{{ c['party'] }}</p>
+          <p style="color:var(--muted);font-size:0.78rem;margin-top:8px;line-height:1.5;">{{ c['bio'] }}</p>
+        </label>
+        {% endfor %}
+      </div>
+      <button type="submit" id="vote-btn" class="btn btn-primary btn-lg" disabled style="opacity:.4;cursor:not-allowed;">
+        Cast Vote →
+      </button>
+      <p style="color:var(--muted);font-size:0.78rem;margin-top:8px;">This action is permanent and cannot be undone.</p>
+    </form>
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center;padding:40px;">
+    <p style="font-size:1.5rem;margin-bottom:12px;">📅</p>
+    <p style="font-weight:600;margin-bottom:6px;">No Active Election</p>
+    <p style="color:var(--muted2);font-size:0.875rem;">Check back when an election is scheduled.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+function pick(id) {
+  document.querySelectorAll('.cand-option').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.check').forEach(el => el.innerHTML = '');
+  document.getElementById('card-' + id).classList.add('selected');
+  document.getElementById('chk-' + id).innerHTML = '<svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 5.5l2.5 2.5L9 3" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
+  const radio = document.querySelector('input[value="' + id + '"]');
+  if (radio) radio.checked = true;
+  const btn = document.getElementById('vote-btn');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+}
+document.getElementById('vote-form')?.addEventListener('submit', e => {
+  if (!confirm('Confirm your vote? This cannot be undone.')) e.preventDefault();
+});
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — VoteSecure{% endblock %}
+{% block extra_css %}
+<style>
+.log-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;font-size:0.83rem;}
+.log-row:last-child{border-bottom:none;}
+.log-tag{padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;letter-spacing:.03em;white-space:nowrap;flex-shrink:0;}
+.lt-ok{background:rgba(34,197,94,.1);color:#86efac;}
+.lt-err{background:rgba(239,68,68,.1);color:#fca5a5;}
+.lt-warn{background:rgba(245,158,11,.1);color:#fcd34d;}
+.lt-info{background:rgba(59,130,246,.1);color:#93c5fd;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="flex-between mb-4">
+    <div>
+      <p style="font-size:0.75rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Election Commission</p>
+      <p class="page-title">Admin Dashboard</p>
+    </div>
+    <a href="/admin/logout" class="btn btn-secondary btn-sm">Sign out</a>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;">
+    {% for label,val,color in [
+      ('Voters', stats.total_voters, 'var(--text)'),
+      ('Votes Cast', stats.total_votes, 'var(--accent)'),
+      ('Candidates', stats.candidates, 'var(--text)'),
+      ('Turnout', turnout|string + '%', 'var(--green)')
+    ] %}
+    <div class="stat-card">
+      <div class="stat-value" style="font-size:1.5rem;color:{{ color }};">{{ val }}</div>
+      <div class="stat-label">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Chart -->
+  {% if chart %}
+  <div class="card mb-4" style="padding:0;overflow:hidden;">
+    <img src="data:image/png;base64,{{ chart }}" style="width:100%;display:block;border-radius:var(--radius);">
+  </div>
+  {% endif %}
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('candidates',this)">Candidates</button>
+    <button class="tab-btn" onclick="showTab('voters',this)">Voters</button>
+    <button class="tab-btn" onclick="showTab('audit',this)">Audit Log</button>
+    <button class="tab-btn" onclick="showTab('controls',this)">Controls</button>
+  </div>
+
+  <!-- Candidates -->
+  <div id="tab-candidates" class="tab-pane active">
+    <div class="card mb-3">
+      <p style="font-weight:600;font-size:0.9rem;margin-bottom:16px;">Add Candidate</p>
+      <form method="POST" action="/admin/add_candidate">
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Party</label><input type="text" name="party" required></div>
+          <div class="form-group"><label>Symbol (emoji)</label><input type="text" name="symbol" value="🏅"></div>
+          <div class="form-group"><label>Position</label><input type="text" name="position" value="Mayor"></div>
+        </div>
+        <div class="form-group"><label>Bio</label><textarea name="bio" rows="2" style="resize:vertical;"></textarea></div>
+        <button type="submit" class="btn btn-primary btn-sm">Add Candidate</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th></th><th>Name</th><th>Party</th><th>Votes</th><th></th></tr></thead>
+          <tbody>
+            {% for c in candidates %}
+            <tr>
+              <td class="mono" style="font-size:0.75rem;color:var(--muted);">{{ c['candidate_id'] }}</td>
+              <td style="font-size:1.3rem;">{{ c['symbol'] }}</td>
+              <td style="font-weight:500;">{{ c['name'] }}</td>
+              <td style="color:var(--muted2);">{{ c['party'] }}</td>
+              <td><span class="mono" style="color:var(--accent);">{{ c['vote_count'] }}</span></td>
+              <td>
+                <form method="POST" action="/admin/delete_candidate/{{ c['candidate_id'] }}" onsubmit="return confirm('Delete this candidate?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voters -->
+  <div id="tab-voters" class="tab-pane">
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Voter ID</th><th>Name</th><th>DOB</th><th>Gender</th><th>Status</th><th>Registered</th></tr></thead>
+          <tbody>
+            {% for v in voters %}
+            <tr>
+              <td class="mono" style="color:var(--accent);font-size:0.82rem;">{{ v['voter_id'] }}</td>
+              <td style="font-weight:500;">{{ v['name'] }}</td>
+              <td style="color:var(--muted2);">{{ v['dob'] }}</td>
+              <td style="color:var(--muted2);">{{ v['gender'] }}</td>
+              <td>
+                <span class="badge {{ 'badge-green' if v['has_voted'] else 'badge-amber' }}">
+                  {{ 'Voted' if v['has_voted'] else 'Pending' }}
+                </span>
+              </td>
+              <td style="color:var(--muted);font-size:0.8rem;">{{ v['registered_at'][:10] if v['registered_at'] else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit -->
+  <div id="tab-audit" class="tab-pane">
+    <div class="card">
+      {% for log in logs %}
+      <div class="log-row">
+        <span class="log-tag
+          {%- if 'SUCCESS' in log['event_type'] or 'VERIFIED' in log['event_type'] or 'REGISTERED' in log['event_type'] or 'CAST' in log['event_type'] %} lt-ok
+          {%- elif 'FAIL' in log['event_type'] or 'MISMATCH' in log['event_type'] %} lt-err
+          {%- elif 'RESET' in log['event_type'] or 'DELETE' in log['event_type'] %} lt-warn
+          {%- else %} lt-info{%- endif %}">{{ log['event_type'] }}</span>
+        <div style="flex:1;">
+          <p>{{ log['details'] or '—' }}</p>
+          <p style="color:var(--muted);font-size:0.75rem;margin-top:2px;">{{ log['user_id'] or 'N/A' }} &middot; {{ log['ip_address'] or 'N/A' }}</p>
+        </div>
+        <p class="mono" style="color:var(--muted);font-size:0.72rem;white-space:nowrap;">{{ log['timestamp'][:16] if log['timestamp'] else '' }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div id="tab-controls" class="tab-pane">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="card">
+        <p style="font-weight:600;font-size:0.9rem;margin-bottom:6px;color:var(--red);">Reset All Votes</p>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:16px;">Clears all votes and resets voter status. Use only for testing.</p>
+        <form method="POST" action="/admin/reset_votes" onsubmit="return confirm('This will DELETE all votes. Are you sure?')">
+          <button type="submit" class="btn btn-danger">Reset Votes</button>
+        </form>
+      </div>
+      <div class="card">
+        <p style="font-weight:600;font-size:0.9rem;margin-bottom:6px;">Current Election</p>
+        {% if election %}
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:8px;">{{ election['title'] }}</p>
+        <p style="color:var(--muted);font-size:0.78rem;">{{ election['start_date'] }} → {{ election['end_date'] }}</p>
+        <span class="badge badge-green" style="margin-top:12px;">{{ election['status'].upper() }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

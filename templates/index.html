@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}VoteSecure India — Home{% endblock %}
+{% block content %}
+<div class="container">
+
+  <!-- Hero -->
+  <div style="padding:48px 0 40px;max-width:600px;">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:99px;padding:4px 14px;font-size:0.78rem;color:var(--muted2);margin-bottom:20px;">
+      <span class="live-dot"></span> Mumbai Municipal Election 2025 is live
+    </div>
+    <h1 style="font-size:2.2rem;font-weight:700;line-height:1.25;margin-bottom:12px;">
+      Your vote shapes<br>India's future.
+    </h1>
+    <p style="color:var(--muted2);font-size:1rem;margin-bottom:28px;max-width:420px;">
+      Register with Aadhaar verification, confirm with OTP, and cast your vote securely from anywhere.
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      {% if session.get('voter') %}
+        <a href="/dashboard" class="btn btn-primary btn-lg">Go to Dashboard →</a>
+      {% else %}
+        <a href="/register" class="btn btn-primary btn-lg">Register to Vote</a>
+        <a href="/login" class="btn btn-secondary btn-lg">Login</a>
+      {% endif %}
+      <a href="/results" class="btn btn-secondary btn-lg">Live Results</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid mb-4">
+    <div class="stat-card">
+      <div class="stat-value">{{ total_voters }}</div>
+      <div class="stat-label">Registered Voters</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--accent);">{{ total_votes }}</div>
+      <div class="stat-label">Votes Cast</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ "%.1f"|format(total_votes/total_voters*100 if total_voters>0 else 0) }}%</div>
+      <div class="stat-label">Turnout</div>
+    </div>
+  </div>
+
+  <!-- Active Election -->
+  {% if election %}
+  <div class="card mb-4" style="border-color:rgba(59,130,246,.2);">
+    <div class="flex-between">
+      <div>
+        <p style="font-size:0.75rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Active Election</p>
+        <p style="font-weight:700;font-size:1.05rem;">{{ election['title'] }}</p>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-top:3px;">{{ election['start_date'] }} — {{ election['end_date'] }}</p>
+      </div>
+      <span class="badge badge-green"><span class="live-dot"></span> LIVE</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Candidates -->
+  <div class="mb-4">
+    <div class="flex-between mb-3">
+      <div>
+        <p class="page-title">Candidates</p>
+        <p class="page-sub">Review their background before voting.</p>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+      {% for c in candidates %}
+      <div class="card" style="display:flex;gap:16px;align-items:flex-start;">
+        <div style="font-size:2rem;flex-shrink:0;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:8px;border:1px solid var(--border2);">{{ c['symbol'] }}</div>
+        <div>
+          <p style="font-weight:600;font-size:0.95rem;">{{ c['name'] }}</p>
+          <p style="color:var(--muted2);font-size:0.8rem;margin-top:2px;">{{ c['party'] }}</p>
+          <p style="color:var(--muted);font-size:0.8rem;margin-top:6px;line-height:1.5;">{{ c['bio'] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div>
+    <p class="page-title mb-3">How it works</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      {% for step in [('01','🪪','Aadhaar Verify','Enter your 12-digit Aadhaar and linked phone number to verify your identity.'),
+                      ('02','📲','OTP Confirm','A one-time password confirms your identity. Valid for 5 minutes.'),
+                      ('03','🗳','Cast Your Vote','Login with your Voter ID and vote. Each person can only vote once.')] %}
+      <div class="card">
+        <p style="font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:0.7rem;margin-bottom:12px;">STEP {{ step[0] }}</p>
+        <p style="font-size:1.5rem;margin-bottom:10px;">{{ step[1] }}</p>
+        <p style="font-weight:600;margin-bottom:6px;font-size:0.9rem;">{{ step[2] }}</p>
+        <p style="color:var(--muted2);font-size:0.83rem;line-height:1.5;">{{ step[3] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

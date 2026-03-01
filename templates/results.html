@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Live Results — VoteSecure{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="flex-between mb-4">
+    <div>
+      <p class="page-title">Live Results</p>
+      <p class="page-sub">{{ election['title'] if election else 'Mumbai Municipal Election 2025' }}</p>
+    </div>
+    <span class="badge badge-green"><span class="live-dot"></span> Live</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid mb-4">
+    <div class="stat-card">
+      <div class="stat-value">{{ total_votes }}</div>
+      <div class="stat-label">Votes Cast</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_voters }}</div>
+      <div class="stat-label">Registered Voters</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--accent);">{{ turnout }}%</div>
+      <div class="stat-label">Turnout</div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  {% if chart %}
+  <div class="card mb-4" style="overflow:hidden;padding:0;">
+    <img src="data:image/png;base64,{{ chart }}" style="width:100%;display:block;border-radius:var(--radius);">
+  </div>
+  {% endif %}
+
+  <!-- Results list -->
+  {% if total_votes == 0 %}
+  <!-- NO VOTES YET — show candidates without ranking -->
+  <div class="card" style="text-align:center;padding:40px 24px;margin-bottom:16px;">
+    <p style="font-size:2rem;margin-bottom:12px;">🗳</p>
+    <p style="font-weight:600;font-size:1rem;margin-bottom:6px;">No votes have been cast yet</p>
+    <p style="color:var(--muted2);font-size:0.875rem;">Results and rankings will appear here once voting begins.</p>
+  </div>
+  <div class="card">
+    <p style="font-size:0.78rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Registered Candidates</p>
+    {% for c in candidates %}
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 0;{{ 'border-bottom:1px solid var(--border);' if not loop.last else '' }}">
+      <div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:8px;font-size:1.2rem;flex-shrink:0;">{{ c['symbol'] }}</div>
+      <div style="flex:1;">
+        <p style="font-weight:600;font-size:0.9rem;">{{ c['name'] }}</p>
+        <p style="color:var(--muted2);font-size:0.8rem;margin-top:1px;">{{ c['party'] }}</p>
+      </div>
+      <span class="badge badge-amber">Awaiting votes</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- VOTES EXIST — show ranked results -->
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    {% for c in candidates %}
+    {% set pct = (c['vote_count'] / total_votes * 100)|round(1) if total_votes > 0 else 0 %}
+    <div class="card" style="{{ 'border-color:rgba(59,130,246,.25);' if loop.index == 1 else '' }}">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <!-- Rank -->
+        <div style="width:32px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted);flex-shrink:0;">
+          {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
+        </div>
+        <!-- Symbol -->
+        <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:8px;font-size:1.3rem;flex-shrink:0;border:1px solid var(--border2);">{{ c['symbol'] }}</div>
+        <!-- Name & Party -->
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-weight:600;font-size:0.95rem;">{{ c['name'] }}</span>
+              <span style="color:var(--muted2);font-size:0.8rem;margin-left:8px;">{{ c['party'] }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--muted2);">{{ c['vote_count'] }} votes</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1rem;color:{{ 'var(--accent)' if loop.index == 1 else 'var(--text)' }};">{{ pct }}%</span>
+            </div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" style="width:{{ pct }}%;{{ 'background:var(--accent);' if loop.index == 1 else 'background:var(--border2);' }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not session.get('voter') %}
+  <div style="text-align:center;margin-top:32px;">
+    <a href="/register" class="btn btn-primary">Register to Vote →</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
